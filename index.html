@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Image To Text Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f172a,#1e293b,#2563eb);
+min-height:100vh;
+overflow-x:hidden;
+color:white;
+}
+
+/* MENU BUTTON */
+
+.menu-btn{
+position:fixed;
+top:15px;
+left:15px;
+width:55px;
+height:55px;
+border:none;
+border-radius:15px;
+background:#2563eb;
+color:white;
+font-size:30px;
+cursor:pointer;
+z-index:1001;
+box-shadow:0 10px 25px rgba(0,0,0,.3);
+}
+
+/* SIDEBAR */
+
+.sidebar{
+position:fixed;
+top:0;
+left:-300px;
+width:300px;
+height:100%;
+background:#111827;
+transition:.35s;
+z-index:1000;
+padding-top:80px;
+overflow-y:auto;
+}
+
+.sidebar.active{
+left:0;
+}
+
+.sidebar a{
+display:block;
+padding:18px 25px;
+color:white;
+text-decoration:none;
+border-bottom:1px solid rgba(255,255,255,.08);
+transition:.3s;
+}
+
+.sidebar a:hover{
+background:#2563eb;
+}
+
+/* PAGES */
+
+.page{
+display:none;
+padding:90px 15px 25px;
+}
+
+.page.active{
+display:block;
+}
+
+/* CONTAINER */
+
+.container{
+width:100%;
+max-width:1200px;
+margin:auto;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(20px);
+border-radius:25px;
+padding:25px;
+box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+
+/* TITLE */
+
+.title{
+text-align:center;
+font-size:2rem;
+margin-bottom:20px;
+}
+
+/* OCR GRID */
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.card{
+background:rgba(255,255,255,.05);
+border-radius:20px;
+padding:20px;
+}
+
+.dropzone{
+border:2px dashed rgba(255,255,255,.35);
+border-radius:20px;
+min-height:350px;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+cursor:pointer;
+transition:.3s;
+}
+
+.dropzone:hover{
+background:rgba(255,255,255,.08);
+}
+
+.preview{
+width:100%;
+max-height:320px;
+object-fit:contain;
+display:none;
+border-radius:15px;
+}
+
+/* BUTTONS */
+
+.btn{
+border:none;
+padding:12px 20px;
+border-radius:12px;
+cursor:pointer;
+color:white;
+font-size:16px;
+margin-top:15px;
+background:linear-gradient(135deg,#00c6ff,#0072ff);
+}
+
+.btn:hover{
+transform:scale(1.03);
+}
+
+/* TEXTAREA */
+
+textarea{
+width:100%;
+height:320px;
+resize:none;
+border:none;
+outline:none;
+border-radius:15px;
+padding:15px;
+font-size:15px;
+}
+
+/* STATUS */
+
+.status{
+margin-top:15px;
+font-weight:bold;
+}
+
+/* ACTIONS */
+
+.actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+/* COUNTER */
+
+.counter{
+margin-top:15px;
+font-size:15px;
+}
+
+/* CONTENT PAGES */
+
+.content{
+line-height:1.9;
+font-size:17px;
+}
+
+.content h1{
+margin-bottom:15px;
+}
+
+.content h2{
+margin-top:20px;
+margin-bottom:10px;
+}
+
+/* FOOTER */
+
+.footer{
+text-align:center;
+padding:25px;
+margin-top:20px;
+border-top:1px solid rgba(255,255,255,.15);
+}
+
+.footer a{
+color:#38bdf8;
+text-decoration:none;
+margin:0 8px;
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+
+.grid{
+grid-template-columns:1fr;
+}
+
+}
+</style>
+
+</head>
+<body>
+
+<button
+class="menu-btn"
+onclick="toggleMenu()">
+
+☰
+
+</button>
+
+<div
+class="sidebar"
+id="sidebar">
+
+<a href="#" onclick="showPage('home')">
+🏠 Home
+</a>
+
+<a href="#" onclick="showPage('privacy')">
+🔒 Privacy Policy
+</a>
+
+<a href="#" onclick="showPage('about')">
+ℹ️ About Us
+</a>
+
+<a href="#" onclick="showPage('contact')">
+📧 Contact Us
+</a>
+
+<a href="#" onclick="showPage('terms')">
+📜 Terms & Conditions
+</a>
+
+<a href="#" onclick="showPage('faq')">
+❓ FAQ
+</a>
+
+<a href="#" onclick="showPage('disclaimer')">
+⚠ Disclaimer
+</a>
+
+</div>
+
+<!-- HOME PAGE -->
+
+<div
+id="home"
+class="page active">
+
+<div class="container">
+
+<h1 class="title">
+📄 Image To Text Pro OCR
+</h1>
+
+<div class="grid">
+
+<div class="card">
+
+<div
+class="dropzone"
+id="dropzone">
+
+<p id="uploadText">
+
+📷 Click Or Drop Image Here
+
+</p>
+
+<img
+id="preview"
+class="preview">
+
+</div>
+
+<input
+type="file"
+id="fileInput"
+hidden
+accept="image/*">
+
+<button
+class="btn"
+id="extractBtn">
+
+🔍 Extract Text
+
+</button>
+
+<div
+class="status"
+id="status">
+
+Ready
+
+</div>
+
+</div>
+
+<div class="card">
+
+<textarea
+id="result"
+placeholder="Extracted text will appear here...">
+</textarea>
+
+<div class="actions">
+
+<button
+class="btn"
+id="copyBtn">
+
+📋 Copy Text
+
+</button>
+
+<button
+class="btn"
+id="clearBtn">
+
+🗑 Clear
+
+</button>
+
+<button
+class="btn"
+id="downloadBtn">
+
+
+Characters:
+<span id="charCount">0</span>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+
+</div>
+
+</div>
+
+</div>
+<!-- PRIVACY PAGE -->
+
+<div id="privacy" class="page">
+
+<div class="container content">
+
+<h1>🔒 Privacy Policy</h1>
+
+<p>
+We respect your privacy.
+</p>
+
+<p>
+Image To Text Pro processes images only for OCR (text extraction).
+</p>
+
+<p>
+We do not store, share, or sell user images or extracted data.
+</p>
+
+<p>
+All processing happens in real-time in your browser.
+</p>
+
+</div>
+
+</div>
+
+<!-- ABOUT PAGE -->
+
+<div id="about" class="page">
+
+<div class="container content">
+
+<h1>ℹ️ About Us</h1>
+
+<p>
+Image To Text Pro is a free online OCR tool.
+</p>
+
+<p>
+It helps users convert images into editable text instantly.
+</p>
+
+<p>
+Our goal is to provide a fast, simple and clean tool for everyone.
+</p>
+
+</div>
+
+</div>
+
+<!-- CONTACT PAGE -->
+
+<div id="contact" class="page">
+
+<div class="container content">
+
+<h1>📧 Contact Us</h1>
+
+<p>
+For any queries or support, contact us at:
+</p>
+
+<p>
+<strong>mynameissatyamkumar9650@gmail.com</strong>
+</p>
+
+</div>
+
+</div>
+
+<!-- TERMS PAGE -->
+
+<div id="terms" class="page">
+
+<div class="container content">
+
+<h1>📜 Terms & Conditions</h1>
+
+<p>
+By using this website, you agree to use it responsibly.
+</p>
+
+<p>
+We are not responsible for incorrect OCR results.
+</p>
+
+<p>
+Content uploaded by users is their responsibility.
+</p>
+
+</div>
+
+</div>
+
+<!-- FAQ PAGE -->
+
+<div id="faq" class="page">
+
+<div class="container content">
+
+<h1>❓ FAQ</h1>
+
+<h2>Is this free?</h2>
+<p>Yes, completely free.</p>
+
+<h2>Do you store images?</h2>
+<p>No, nothing is stored.</p>
+
+<h2>Why OCR is not 100% accurate?</h2>
+<p>Because image quality affects text recognition.</p>
+
+</div>
+
+</div>
+
+<!-- DISCLAIMER PAGE -->
+
+<div id="disclaimer" class="page">
+
+<div class="container content">
+
+<h1>⚠ Disclaimer</h1>
+
+<p>
+This tool is provided for educational and general use only.
+</p>
+
+<p>
+We do not guarantee 100% accuracy of extracted text.
+</p>
+
+<p>
+Always verify results before using them.
+</p>
+
+</div>
+
+</div>
+<script>
+
+/* =========================
+   MENU TOGGLE
+========================= */
+
+function toggleMenu(){
+document.getElementById("sidebar")
+.classList.toggle("active");
+}
+
+/* =========================
+   PAGE SWITCHING
+========================= */
+
+function showPage(page){
+
+document.querySelectorAll(".page")
+.forEach(p=>{
+p.classList.remove("active");
+});
+
+document.getElementById(page)
+.classList.add("active");
+
+document.getElementById("sidebar")
+.classList.remove("active");
+
+}
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const fileInput =
+document.getElementById("fileInput");
+
+const dropzone =
+document.getElementById("dropzone");
+
+const preview =
+document.getElementById("preview");
+
+const extractBtn =
+document.getElementById("extractBtn");
+
+const result =
+document.getElementById("result");
+
+const statusText =
+document.getElementById("status");
+
+const copyBtn =
+document.getElementById("copyBtn");
+
+const clearBtn =
+document.getElementById("clearBtn");
+
+const downloadBtn =
+document.getElementById("downloadBtn");
+
+const uploadText =
+document.getElementById("uploadText");
+
+const wordCount =
+document.getElementById("wordCount");
+
+const charCount =
+document.getElementById("charCount");
+
+let selectedFile = null;
+
+/* =========================
+   IMAGE UPLOAD
+========================= */
+
+dropzone.addEventListener("click",()=>{
+fileInput.click();
+});
+
+fileInput.addEventListener("change",(e)=>{
+loadImage(e.target.files[0]);
+});
+
+dropzone.addEventListener("dragover",(e)=>{
+e.preventDefault();
+});
+
+dropzone.addEventListener("drop",(e)=>{
+e.preventDefault();
+loadImage(e.dataTransfer.files[0]);
+});
+
+function loadImage(file){
+
+if(!file) return;
+
+selectedFile = file;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+preview.src = e.target.result;
+preview.style.display = "block";
+uploadText.style.display = "none";
+
+};
+
+reader.readAsDataURL(file);
+}
+
+/* =========================
+   OCR FUNCTION
+========================= */
+
+extractBtn.addEventListener("click",async()=>{
+
+if(!selectedFile){
+alert("Please select image");
+return;
+}
+
+result.value = "";
+statusText.innerText = "Processing...";
+
+try{
+
+const {
+data:{text}
+} = await Tesseract.recognize(
+selectedFile,
+"eng",
+{
+logger:m=>{
+if(m.progress){
+statusText.innerText =
+m.status + " " +
+Math.floor(m.progress*100) + "%";
+}
+}
+}
+);
+
+result.value = text;
+statusText.innerText = "Completed ✅";
+
+updateCounts();
+
+}catch(err){
+console.log(err);
+statusText.innerText = "OCR Failed ❌";
+}
+
+});
+
+/* =========================
+   COPY TEXT
+========================= */
+
+copyBtn.addEventListener("click",async()=>{
+
+if(!result.value.trim()){
+alert("No text found");
+return;
+}
+
+try{
+await navigator.clipboard.writeText(result.value);
+}catch{
+result.select();
+document.execCommand("copy");
+}
+
+copyBtn.innerText = "Copied ✅";
+
+setTimeout(()=>{
+copyBtn.innerText = "📋 Copy Text";
+},2000);
+
+});
+
+/* =========================
+   CLEAR
+========================= */
+
+clearBtn.addEventListener("click",()=>{
+
+result.value = "";
+preview.src = "";
+preview.style.display = "none";
+uploadText.style.display = "block";
+statusText.innerText = "Ready";
+selectedFile = null;
+
+updateCounts();
+
+});
+
+/* =========================
+   DOWNLOAD TXT
+========================= */
+
+downloadBtn.addEventListener("click",()=>{
+
+if(!result.value.trim()){
+alert("No text to download");
+return;
+}
+
+const blob = new Blob(
+[result.value],
+{type:"text/plain"}
+);
+
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+a.href = url;
+a.download = "Extracted_Text.txt";
+a.click();
+
+URL.revokeObjectURL(url);
+
+});
+
+/* =========================
+   COUNTERS
+========================= */
+
+function updateCounts(){
+
+let text = result.value.trim();
+
+charCount.innerText = text.length;
+
+if(text === ""){
+wordCount.innerText = 0;
+return;
+}
+
+wordCount.innerText = text.split(/\s+/).length;
+
+}
+
+result.addEventListener("input",updateCounts);
+
+</script>
+
+</body>
+</html>
