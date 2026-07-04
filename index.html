@@ -9,7 +9,6 @@
 <meta name="google-adsense-account" content="ca-pub-3312223854574959">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3312223854574959"
      crossorigin="anonymous"></script>
-google.com, pub-3312223854574959, DIRECT, f08c47fec0942fa0
 <title>Image to text converter free</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -351,6 +350,16 @@ Ready
 id="result"
 placeholder="Extracted text will appear here...">
 </textarea>
+
+<div id="adContainer" style="display:none;margin-top:20px;text-align:center;">
+
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-3312223854574959"
+     data-ad-slot="4799962739"
+     data-ad-format="fluid"></ins>
+
+</div>
 
 <div class="actions">
 
@@ -706,6 +715,11 @@ document.execCommand("copy");
 }
 
 copyBtn.innerText = "Copied ✅";
+document.getElementById("adContainer").style.display = "block";
+
+try {
+  (adsbygoogle = window.adsbygoogle || []).push({});
+} catch(e) {}
 
 setTimeout(()=>{
 copyBtn.innerText = "📋 Copy Text";
